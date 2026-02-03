@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-高效麦角硫因产量优化靶点预测系统 v5.0
-简化版：基于梯度提升树和特征重要性分析
-"""
 
 import numpy as np
 import pandas as pd
@@ -18,29 +13,6 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.linear_model import Ridge
 from scipy import stats
 import joblib
-
-# 设置随机种子
-np.random.seed(42)
-
-# 设置中文字体
-plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
-
-# 尝试导入可选库
-try:
-    import shap
-    HAS_SHAP = True
-except ImportError:
-    HAS_SHAP = False
-    print("提示: shap未安装，将跳过SHAP分析")
-
-try:
-    import seaborn as sns
-    HAS_SEABORN = True
-except ImportError:
-    HAS_SEABORN = False
-
-# ==================== 1. 数据处理器 ====================
 
 class EfficientDataProcessor:
     """数据处理器"""
@@ -460,87 +432,6 @@ class ErgothioneinePredictor:
         print(f"\n结果已保存到 {self.output_dir}/")
 
 
-# ==================== 7. 示例数据生成 ====================
-
-def create_sample_data(transcript_path, metabo_path):
-    """创建示例数据"""
-    data_dir = os.path.dirname(transcript_path)
-    if data_dir:
-        os.makedirs(data_dir, exist_ok=True)
-    
-    n_samples = 80
-    n_genes = 1500
-    n_metabolites = 100
-    
-    np.random.seed(42)
-    
-    # 创建调控基因
-    n_regulatory = 25
-    regulatory_indices = np.random.choice(n_genes, n_regulatory, replace=False)
-    
-    # 转录组数据
-    base_expr = np.random.lognormal(mean=2, sigma=1.2, size=(n_samples, n_genes))
-    
-    # 添加调控模式
-    regulatory_strengths = np.random.uniform(0.5, 3.0, n_regulatory)
-    for i, idx in enumerate(regulatory_indices):
-        sample_indices = np.random.choice(n_samples, size=int(n_samples * 0.6), replace=False)
-        if i < 12:
-            base_expr[sample_indices, idx] *= regulatory_strengths[i]
-        else:
-            base_expr[sample_indices, idx] /= regulatory_strengths[i]
-    
-    # 基因名称
-    gene_names = [f'Gene_{i:04d}' for i in range(n_genes)]
-    
-    important_genes = ['egtA', 'egtB', 'egtC', 'egtD', 'egtE',
-                      'hercynine_ligase', 'thiohydroximate_synthase',
-                      'glutathione_transferase', 'cysteine_desulfurase',
-                      'methionine_synthase']
-    
-    for i, idx in enumerate(regulatory_indices[:len(important_genes)]):
-        gene_names[idx] = important_genes[i]
-    
-    transcriptomics = pd.DataFrame(
-        base_expr, columns=gene_names,
-        index=[f'Sample_{i:03d}' for i in range(n_samples)]
-    )
-    
-    # 代谢组数据
-    metabo_base = np.random.lognormal(mean=0, sigma=1.0, size=(n_samples, n_metabolites))
-    
-    metabo_names = [f'Met_{i:03d}' for i in range(n_metabolites)]
-    known_metabolites = ['Hercynine', 'Glutathione', 'Cysteine', 'Methionine', 
-                        'S_Adenosyl_Methionine', 'Homocysteine']
-    
-    for i, name in enumerate(known_metabolites):
-        if i < len(metabo_names):
-            metabo_names[i] = name
-    
-    # 生成产量数据
-    yield_data = np.zeros(n_samples)
-    for i in range(8):
-        idx = regulatory_indices[i]
-        yield_data += 0.25 * base_expr[:, idx]
-    for i in range(3):
-        yield_data += 0.3 * metabo_base[:, i]
-    
-    yield_data += np.random.normal(0, 0.15, n_samples)
-    yield_data = (yield_data - np.mean(yield_data)) / np.std(yield_data)
-    
-    metabolomics = pd.DataFrame(
-        metabo_base, columns=metabo_names,
-        index=[f'Sample_{i:03d}' for i in range(n_samples)]
-    )
-    metabolomics['Ergothioneine'] = yield_data
-    
-    transcriptomics.to_csv(transcript_path)
-    metabolomics.to_csv(metabo_path)
-    
-    print(f"示例数据已创建: {transcript_path}, {metabo_path}")
-
-
-# ==================== 8. 主函数 ====================
 
 def main():
     """主函数"""
@@ -585,3 +476,4 @@ if __name__ == "__main__":
         print(f"程序运行出错: {e}")
         import traceback
         traceback.print_exc()
+
