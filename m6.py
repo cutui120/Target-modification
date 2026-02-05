@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 高效麦角硫因产量优化靶点预测系统 v4.0
 基于正交机器学习、动态先验整合与不确定性量化
@@ -25,22 +25,7 @@ from difflib import SequenceMatcher
 
 np.random.seed(42)
 
-# 尝试导入可选库
-try:
-    from statsmodels.stats.multitest import fdrcorrection
-    HAS_STATSMODELS = True
-except ImportError:
-    HAS_STATSMODELS = False
-    def fdrcorrection(pvals, alpha=0.05):
-        """简单的 Benjamini-Hochberg FDR 校正"""
-        n = len(pvals)
-        sorted_idx = np.argsort(pvals)
-        sorted_pvals = np.array(pvals)[sorted_idx]
-        adjusted = np.zeros(n)
-        for i, p in enumerate(sorted_pvals):
-            adjusted[sorted_idx[i]] = min(1.0, p * n / (i + 1))
-        reject = adjusted < alpha
-        return reject, adjusted
+
 
 # ==================== 1. 数据处理器 ====================
 
@@ -721,24 +706,7 @@ class ErgothioneinePredictor:
         print(f"\n结果已保存到 {self.output_dir}/")
 
 
-# ==================== 7. 示例数据生成 ====================
 
-def create_sample_data(transcript_path, metabo_path):
-    """创建示例数据"""
-    data_dir = os.path.dirname(transcript_path)
-    if data_dir:
-        os.makedirs(data_dir, exist_ok=True)
-    
-    np.random.seed(42)
-    
-    n_samples = 80
-    n_genes = 3000
-    n_metabolites = 150
-    
-    # 调控基因
-    n_regulatory = 40
-    regulatory_indices = np.random.choice(n_genes, n_regulatory, replace=False)
-    
     # 转录组数据
     base_expr = np.random.lognormal(mean=3, sigma=1.2, size=(n_samples, n_genes))
     
@@ -847,3 +815,4 @@ def main():
 
 if __name__ == "__main__":
     results = main()
+
